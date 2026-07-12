@@ -1,7 +1,7 @@
 {
   "plugin_id": "ehentai",
   "display_name": "E-Hentai / ExHentai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Download galleries and browse listings from E-Hentai and ExHentai.",
   "entrypoint": "plugin.py:Plugin",
   "manifest": "site.json",
