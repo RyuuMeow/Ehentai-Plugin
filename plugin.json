@@ -1,0 +1,10 @@
+{
+  "plugin_id": "ehentai",
+  "display_name": "E-Hentai / ExHentai",
+  "version": "0.1.0",
+  "description": "Download galleries and browse listings from E-Hentai and ExHentai.",
+  "entrypoint": "plugin.py:Plugin",
+  "manifest": "site.json",
+  "requires_python": ">=3.11",
+  "requires_core_api": ">=0.1.0"
+}

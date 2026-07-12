@@ -1,0 +1,185 @@
+{
+  "site_id": "ehentai",
+  "display_name": "E-Hentai / ExHentai",
+  "domains": ["e-hentai.org", "exhentai.org"],
+  "url_rules": [
+    {
+      "name": "gallery",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/g/(?P<gallery_id>\\d+)/(?P<token>[a-f0-9]+)/?$",
+      "input_kind": "single",
+      "operation": "single_download",
+      "description": "Gallery detail page."
+    },
+    {
+      "name": "image_page",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/s/(?P<page_token>[A-Za-z0-9]+)/(?P<gallery_id>\\d+)-(?P<page>\\d+)/?$",
+      "input_kind": "page",
+      "operation": "page_download",
+      "description": "Single image viewer page."
+    },
+    {
+      "name": "tag_listing",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/tag/(?P<tag>[^/?#]+).*$",
+      "input_kind": "batch",
+      "operation": "batch_download",
+      "description": "Tag listing page."
+    },
+    {
+      "name": "uploader_listing",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/uploader/(?P<uploader>[^/?#]+).*$",
+      "input_kind": "batch",
+      "operation": "batch_download",
+      "description": "Uploader listing page."
+    },
+    {
+      "name": "search_result",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/(?:\\?.*)?$",
+      "input_kind": "batch",
+      "operation": "batch_download",
+      "description": "Front page or search result listing."
+    },
+    {
+      "name": "named_listing",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/(?P<listing>favorites|watched|popular|toplists).*$",
+      "input_kind": "batch",
+      "operation": "batch_download",
+      "description": "Named gallery listing page."
+    }
+  ],
+  "operations": {
+    "single_download": {
+      "name": "single_download",
+      "supported": true,
+      "requires_live_network_confirmation": true,
+      "params": {
+        "strategy": {
+          "type": "string",
+          "enum": ["auto", "direct", "torrent"],
+          "default": "auto",
+          "editable": true
+        }
+      }
+    },
+    "page_download": {
+      "name": "page_download",
+      "supported": false,
+      "requires_live_network_confirmation": true,
+      "params": {
+        "page_start": {
+          "type": "integer",
+          "min": 1,
+          "editable": false,
+          "description": "Page-level downloads are not implemented yet."
+        },
+        "page_end": {
+          "type": "integer",
+          "min": 1,
+          "editable": false,
+          "description": "Page-level downloads are not implemented yet."
+        }
+      }
+    },
+    "batch_download": {
+      "name": "batch_download",
+      "supported": true,
+      "requires_live_network_confirmation": true,
+      "params": {
+        "page": {
+          "type": "integer",
+          "min": 1,
+          "default": 1,
+          "editable": false,
+          "visible": false
+        },
+        "max_items": {
+          "type": "integer",
+          "min": 1,
+          "max": 500,
+          "default": 50,
+          "editable": true,
+          "description": "Maximum gallery candidates to show from the current listing page."
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["auto", "direct", "torrent"],
+          "default": "auto",
+          "editable": true,
+          "description": "Download strategy used for selected galleries."
+        },
+        "include_tags": {
+          "type": "string_list",
+          "editable": false,
+          "description": "Batch filters are pending implementation."
+        },
+        "exclude_tags": {
+          "type": "string_list",
+          "editable": false,
+          "description": "Batch filters are pending implementation."
+        }
+      }
+    }
+  },
+  "settings": {
+    "http.user_agent": {
+      "type": "string",
+      "default": "CLI-Downloader/0.1"
+    },
+    "http.timeout_seconds": {
+      "type": "number",
+      "min": 0.01,
+      "default": 30.0
+    },
+    "http.retry_attempts": {
+      "type": "integer",
+      "min": 0,
+      "default": 2
+    },
+    "http.delay_seconds": {
+      "type": "number",
+      "min": 0,
+      "max": 30,
+      "default": 1.5,
+      "editable": true
+    }
+  },
+  "secrets": {
+    "cookies.ipb_member_id": {
+      "type": "string",
+      "required": false,
+      "secret": true
+    },
+    "cookies.ipb_pass_hash": {
+      "type": "string",
+      "required": false,
+      "secret": true
+    }
+  },
+  "network": {
+    "max_concurrency": 2,
+    "min_interval_seconds": 1.5,
+    "retryable_status_codes": [429, 502, 503],
+    "max_attempts": 5,
+    "max_backoff_seconds": 300
+  },
+  "output": {
+    "output_labels": [
+      "gallery_id",
+      "title",
+      "artist",
+      "gid",
+      "token",
+      "site",
+      "gallery_url",
+      "title_jpn",
+      "category",
+      "uploader",
+      "file_count",
+      "filesize",
+      "posted",
+      "rating",
+      "torrent_count",
+      "requested_strategy"
+    ],
+    "folder_template": "{gallery_id}-{title}"
+  }
+}
