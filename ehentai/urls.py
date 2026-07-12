@@ -29,11 +29,11 @@ class EHentaiUrlInfo:
 
 
 _GALLERY_URL_PATTERN = re.compile(
-    r"^https?://(?P<site>e-hentai|exhentai)\.org/g/(?P<gid>\d+)/(?P<token>[a-f0-9]+)/?$",
+    r"^https?://(?P<site>e-hentai|exhentai)\.org/g/(?P<gid>\d+)/(?P<token>[a-f0-9]+)(?:[/?].*)?$",
     re.IGNORECASE,
 )
 _IMAGE_PAGE_URL_PATTERN = re.compile(
-    r"^https?://(?P<site>e-hentai|exhentai)\.org/s/(?P<page_token>[A-Za-z0-9]+)/(?P<gid>\d+)-(?P<page>\d+)/?$",
+    r"^https?://(?P<site>e-hentai|exhentai)\.org/s/(?P<page_token>[A-Za-z0-9]+)/(?P<gid>\d+)-(?P<page>\d+)(?:[/?].*)?$",
     re.IGNORECASE,
 )
 _DOMAIN_URL_PATTERN = re.compile(

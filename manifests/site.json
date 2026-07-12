@@ -5,14 +5,14 @@
   "url_rules": [
     {
       "name": "gallery",
-      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/g/(?P<gallery_id>\\d+)/(?P<token>[a-f0-9]+)/?$",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/g/(?P<gallery_id>\\d+)/(?P<token>[a-f0-9]+)(?:[/?].*)?$",
       "input_kind": "single",
       "operation": "single_download",
       "description": "Gallery detail page."
     },
     {
       "name": "image_page",
-      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/s/(?P<page_token>[A-Za-z0-9]+)/(?P<gallery_id>\\d+)-(?P<page>\\d+)/?$",
+      "pattern": "^https?://(?P<host>e-hentai|exhentai)\\.org/s/(?P<page_token>[A-Za-z0-9]+)/(?P<gallery_id>\\d+)-(?P<page>\\d+)(?:[/?].*)?$",
       "input_kind": "page",
       "operation": "page_download",
       "description": "Single image viewer page."

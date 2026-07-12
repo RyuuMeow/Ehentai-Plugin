@@ -21,7 +21,7 @@ def get_ehentai_manifest() -> SiteManifest:
                 name="gallery",
                 pattern=(
                     r"^https?://(?P<host>e-hentai|exhentai)\.org/g/"
-                    r"(?P<gallery_id>\d+)/(?P<token>[a-f0-9]+)/?$"
+                    r"(?P<gallery_id>\d+)/(?P<token>[a-f0-9]+)(?:[/?].*)?$"
                 ),
                 input_kind=InputKind.SINGLE,
                 operation="single_download",
@@ -31,7 +31,7 @@ def get_ehentai_manifest() -> SiteManifest:
                 name="image_page",
                 pattern=(
                     r"^https?://(?P<host>e-hentai|exhentai)\.org/s/"
-                    r"(?P<page_token>[A-Za-z0-9]+)/(?P<gallery_id>\d+)-(?P<page>\d+)/?$"
+                    r"(?P<page_token>[A-Za-z0-9]+)/(?P<gallery_id>\d+)-(?P<page>\d+)(?:[/?].*)?$"
                 ),
                 input_kind=InputKind.PAGE,
                 operation="page_download",
