@@ -332,11 +332,12 @@ class EHentaiAdapter:
                 torrent_assets = await self.list_torrent_assets(item)
             except AdapterResolutionError:
                 torrent_assets = AssetList(assets=())
-            if torrent_assets.assets:
+            selected_torrent = _most_seeded_torrent_asset(torrent_assets)
+            if selected_torrent is not None and _torrent_seed_count(selected_torrent) > 0:
                 return DownloadStrategyPlan(
                     strategy=DownloadStrategy.TORRENT,
-                    reason="ehentai_auto_torrent_candidates",
-                    assets=torrent_assets,
+                    reason="ehentai_auto_most_seeded_torrent",
+                    assets=AssetList(assets=(selected_torrent,)),
                 )
         if strategy not in {DownloadStrategy.AUTO, DownloadStrategy.DIRECT}:
             raise AdapterResolutionError(
@@ -370,14 +371,15 @@ class EHentaiAdapter:
 
     async def choose_torrent_strategy(self, item: ResolvedItem) -> DownloadStrategyPlan:
         assets = await self.list_torrent_assets(item)
-        if not assets.assets:
+        selected_torrent = _most_seeded_torrent_asset(assets)
+        if selected_torrent is None:
             raise AdapterResolutionError(
                 "E-Hentai gallery does not provide any downloadable torrent candidates."
             )
         return DownloadStrategyPlan(
             strategy=DownloadStrategy.TORRENT,
-            reason="ehentai_torrent_candidates",
-            assets=assets,
+            reason="ehentai_most_seeded_torrent",
+            assets=AssetList(assets=(selected_torrent,)),
         )
 
     def _raise_if_cancelled(self) -> None:
@@ -457,6 +459,17 @@ def _torrent_filename(candidate: EHentaiTorrentCandidate, *, index: int) -> str:
     if filename.lower().endswith(".torrent"):
         return filename
     return f"torrent-{index:03d}.torrent"
+
+
+def _most_seeded_torrent_asset(assets: AssetList) -> Asset | None:
+    if not assets.assets:
+        return None
+    return max(assets.assets, key=_torrent_seed_count)
+
+
+def _torrent_seed_count(asset: Asset) -> int:
+    value = asset.metadata.get("seeds", 0)
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
 
 
 def _list_item(

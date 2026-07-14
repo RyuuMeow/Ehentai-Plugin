@@ -313,7 +313,7 @@ class EHentaiAdapterStrategyTest(TestCase):
         plan = asyncio.run(adapter.choose_torrent_strategy(item))
 
         self.assertEqual(plan.strategy, DownloadStrategy.TORRENT)
-        self.assertEqual(plan.reason, "ehentai_torrent_candidates")
+        self.assertEqual(plan.reason, "ehentai_most_seeded_torrent")
         self.assertEqual(torrent_client.requests, ["https://e-hentai.org/g/123/abcdef/"])
         self.assertEqual(len(plan.assets.assets), 1)
         asset = plan.assets.assets[0]
@@ -366,12 +366,16 @@ class EHentaiAdapterStrategyTest(TestCase):
         self.assertEqual(plan.strategy, DownloadStrategy.TORRENT)
         self.assertEqual(len(plan.assets.assets), 1)
 
-    def test_auto_prefers_torrent_when_torrent_client_is_enabled(self) -> None:
+    def test_auto_prefers_most_seeded_torrent_when_torrent_client_is_enabled(self) -> None:
         torrent_client = FakeTorrentPageClient(
             """
             <table>
               <tr>
-                <td><a href="/torrent/123/sample.torrent">Sample Torrent</a></td>
+                <td><a href="/torrent/123/low.torrent">Low Seed Torrent</a></td>
+                <td>Size: 1.5 MiB Seeds: 2 Peers: 3 Downloads: 20</td>
+              </tr>
+              <tr>
+                <td><a href="/torrent/123/high.torrent">High Seed Torrent</a></td>
                 <td>Size: 1.5 MiB Seeds: 7 Peers: 3 Downloads: 20</td>
               </tr>
             </table>
@@ -388,14 +392,50 @@ class EHentaiAdapterStrategyTest(TestCase):
             metadata={
                 "gallery_url": "https://e-hentai.org/g/123/abcdef/",
                 "file_count": 1,
-                "torrent_count": 1,
+                "torrent_count": 2,
             },
         )
 
         plan = asyncio.run(adapter.choose_strategy(item))
 
         self.assertEqual(plan.strategy, DownloadStrategy.TORRENT)
-        self.assertEqual(plan.reason, "ehentai_auto_torrent_candidates")
+        self.assertEqual(plan.reason, "ehentai_auto_most_seeded_torrent")
+        self.assertEqual(len(plan.assets.assets), 1)
+        self.assertEqual(plan.assets.assets[0].filename, "high.torrent")
+        self.assertEqual(plan.assets.assets[0].metadata["seeds"], 7)
+
+    def test_requested_torrent_uses_most_seeded_candidate_even_when_seeds_are_zero(self) -> None:
+        torrent_client = FakeTorrentPageClient(
+            """
+            <table>
+              <tr>
+                <td><a href="/torrent/123/first.torrent">First Torrent</a></td>
+                <td>Seeds: 0</td>
+              </tr>
+              <tr>
+                <td><a href="/torrent/123/second.torrent">Second Torrent</a></td>
+                <td>Seeds: 0</td>
+              </tr>
+            </table>
+            """
+        )
+        adapter = EHentaiAdapter(torrent_page_client=torrent_client)
+        item = ResolvedItem(
+            site_id="ehentai",
+            source_url="https://e-hentai.org/g/123/abcdef/",
+            title="Sample Gallery",
+            metadata={
+                "gallery_url": "https://e-hentai.org/g/123/abcdef/",
+                "torrent_count": 2,
+                "requested_strategy": "torrent",
+            },
+        )
+
+        plan = asyncio.run(adapter.choose_strategy(item))
+
+        self.assertEqual(plan.strategy, DownloadStrategy.TORRENT)
+        self.assertEqual(len(plan.assets.assets), 1)
+        self.assertEqual(plan.assets.assets[0].filename, "first.torrent")
 
     def test_auto_falls_back_to_direct_when_torrent_candidates_are_unavailable(self) -> None:
         gallery_client = FakeGalleryPageClient(
@@ -408,6 +448,38 @@ class EHentaiAdapterStrategyTest(TestCase):
         adapter = EHentaiAdapter(
             gallery_page_client=gallery_client,
             torrent_page_client=FakeTorrentPageClient(""),
+            auto_torrent_enabled=True,
+        )
+        item = ResolvedItem(
+            site_id="ehentai",
+            source_url="https://e-hentai.org/g/123/abcdef/",
+            title="Sample Gallery",
+            metadata={
+                "gallery_url": "https://e-hentai.org/g/123/abcdef/",
+                "file_count": 1,
+                "torrent_count": 1,
+            },
+        )
+
+        plan = asyncio.run(adapter.choose_strategy(item))
+
+        self.assertEqual(plan.strategy, DownloadStrategy.DIRECT)
+        self.assertEqual(plan.reason, "ehentai_auto_direct_fallback")
+
+    def test_auto_falls_back_to_direct_when_best_torrent_has_zero_seeds(self) -> None:
+        gallery_client = FakeGalleryPageClient(
+            {
+                0: '<div id="gdt">'
+                '<a href="/s/PageTokenA/123-1"><div title="Page 1: 001.jpg"></div></a>'
+                "</div>"
+            }
+        )
+        adapter = EHentaiAdapter(
+            gallery_page_client=gallery_client,
+            torrent_page_client=FakeTorrentPageClient(
+                '<table><tr><td><a href="/torrent/123/idle.torrent">Idle</a></td>'
+                '<td>Seeds: 0 Peers: 4 Downloads: 20</td></tr></table>'
+            ),
             auto_torrent_enabled=True,
         )
         item = ResolvedItem(

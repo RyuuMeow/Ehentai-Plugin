@@ -89,6 +89,7 @@ ExHentai 需要認證才能存取。
 | `http.timeout_seconds` | number | `30.0` | ≥ 0.01 | HTTP 請求逾時秒數 |
 | `http.retry_attempts` | integer | `2` | ≥ 0 | 請求失敗時的重試次數 |
 | `http.delay_seconds` | number | `1.5` | 0–30 | 請求之間的延遲秒數 |
+| `download.folder_template` | string | 未覆寫（有效預設值為 `{gallery_id}-{title}`） | 相對路徑範本 | 覆寫此插件的下載資料夾範本；完整設定鍵為 `plugins.ehentai.download.folder_template` |
 
 ## 下載策略
 
@@ -96,15 +97,15 @@ ExHentai 需要認證才能存取。
 
 | 策略 | 值 | 說明 |
 |---|---|---|
-| 自動 | `auto` | 若已設定 torrent 客戶端且畫廊有 torrent，則優先使用 torrent；否則回退為直接下載 |
+| 自動 | `auto` | 若已設定 torrent 客戶端，選擇種子數最多的 torrent；最高種子數為 0 時回退為直接下載 |
 | 直接 | `direct` | 逐一爬取畫廊圖片頁面，解析原始圖片 URL 並下載 |
-| Torrent | `torrent` | 下載畫廊提供的 torrent 檔案，需設定 torrent 客戶端（如 qBittorrent） |
+| Torrent | `torrent` | 強制選擇畫廊中種子數最多的 torrent，需設定 torrent 客戶端（如 qBittorrent） |
 
 ### 策略選擇行為
 
-- `auto`：若 `torrent.client` 設定為 `qbittorrent` 且該畫廊有 torrent 候選，則選擇 torrent；否則使用 direct。
+- `auto`：若 `torrent.client` 設定為 `qbittorrent`，會選擇種子數最多的 torrent；若沒有候選或最高種子數為 `0`，則使用 direct。
 - `direct`：強制使用圖片頁面逐頁下載。
-- `torrent`：僅下載 torrent 檔案。若畫廊無 torrent 候選，操作會失敗。
+- `torrent`：強制選擇種子數最多的單一 torrent，即使其種子數為 `0`；若畫廊無 torrent 候選，操作會失敗。
 
 ## 輸出範本變數
 
@@ -130,6 +131,8 @@ ExHentai 需要認證才能存取。
 | `{requested_strategy}` | 請求時選擇的下載策略 |
 
 預設輸出目錄範本：`{gallery_id}-{title}`
+
+可在設定介面使用 `plugins.ehentai.download.folder_template` 覆寫此範本。插件覆寫值優先於上述預設值；範本必須是下載根目錄下的相對路徑。
 
 範例：
 
@@ -187,10 +190,11 @@ clid download "你的URL" --dry-run --json
 2. 檢查網路連線是否可正常存取 E-Hentai（部分地區可能需要 VPN）。
 3. 確認 `http.timeout_seconds` 未設定過低（預設 30 秒通常足夠）。
 
-### Torrent 策略回退至 direct
+### Auto 策略回退至 direct
 
-若設定 `torrent` 但最終仍使用 direct：
+若設定 `auto` 但最終使用 direct：
 - 確認畫廊本身是否提供 torrent 下載選項（`torrent_count` > 0）。
+- 確認種子數最多的 torrent 是否至少有 1 個種子。
 - 確認 `torrent.client` 設定為 `qbittorrent` 且服務正常運作。
 
 ## 免責聲明（Disclaimer）

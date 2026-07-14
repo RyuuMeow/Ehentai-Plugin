@@ -5,6 +5,7 @@ import importlib.util
 from pathlib import Path
 from unittest import TestCase
 
+from cli_downloader.config.schema import SettingsRegistry
 from cli_downloader.core.models import DownloadStrategy, ResolveRequest
 from .ehentai_fakes import FakeLiveTransport
 
@@ -52,6 +53,18 @@ class TorrentPluginTransport(FakeLiveTransport):
 
 
 class ExternalEHentaiPluginTest(TestCase):
+    def test_manifest_declares_download_folder_template(self) -> None:
+        manifest = _load_plugin_type()().get_manifest()
+
+        self.assertEqual(manifest.output.default_folder_template, "{gallery_id}-{title}")
+        self.assertIn("artist", manifest.output.fields)
+
+        registry = SettingsRegistry()
+        registry.register_plugin("ehentai", manifest)
+        field = registry.field("plugins.ehentai.download.folder_template")
+        self.assertIsNone(field.default)
+        field.validate("{artist}/{gallery_id}-{title}")
+
     def test_classification_matches_manifest_contract(self) -> None:
         plugin = _load_plugin_type()()
 

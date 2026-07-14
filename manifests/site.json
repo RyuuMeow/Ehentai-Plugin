@@ -162,9 +162,7 @@
     "max_backoff_seconds": 300
   },
   "output": {
-    "output_labels": [
-      "gallery_id",
-      "title",
+    "fields": [
       "artist",
       "gid",
       "token",
@@ -180,6 +178,6 @@
       "torrent_count",
       "requested_strategy"
     ],
-    "folder_template": "{gallery_id}-{title}"
+    "default_folder_template": "{gallery_id}-{title}"
   }
 }
