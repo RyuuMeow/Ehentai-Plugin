@@ -39,10 +39,10 @@
 clid download "https://e-hentai.org/g/1234567/a1b2c3d4e5/"
 
 # 使用 torrent 策略下載
-clid download "https://e-hentai.org/g/1234567/a1b2c3d4e5/" --param strategy=torrent
+clid download "https://e-hentai.org/g/1234567/a1b2c3d4e5/" --strategy torrent
 
 # 使用直接下載策略
-clid download "https://e-hentai.org/g/1234567/a1b2c3d4e5/" --param strategy=direct
+clid download "https://e-hentai.org/g/1234567/a1b2c3d4e5/" --strategy direct
 
 # 預覽模式 — 確認路由與參數，不發送網路請求
 clid download "https://e-hentai.org/g/1234567/a1b2c3d4e5/" --dry-run --json
